@@ -17,7 +17,7 @@ COPY Pipfile.lock .
 RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
 
 #Copy the Flask app code to the working directory
-COPY src/ .
+COPY . .
 
 #Run the container
-CMD [ "pipenv", "run","python", "./app.py" ]
+CMD [ "pipenv", "run","python", ".src/app.py" ]
