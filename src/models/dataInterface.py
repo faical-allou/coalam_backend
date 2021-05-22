@@ -8,13 +8,14 @@ class dataInterface:
 
     def getAllRecipes(self ):
         recipes = pd.read_csv('./assets/data/recipes.csv')
-        result = json.dumps(recipes.to_json(orient="records"))
+        result = recipes.to_json(orient="records")
         return result
 
     def getRecipebyId(self, inputId):
         recipes = pd.read_csv('./assets/data/recipes.csv')
         recipe = recipes[recipes['id'].astype(str) == inputId]
-        result = json.dumps(recipe.to_json(orient="records"))
+
+        result = recipe.to_json(orient="records")
         return result
     
 

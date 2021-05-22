@@ -29,7 +29,6 @@ def getRecipeId(id):
 
 @app.route('/get_image/<recipeId>/count')
 def getRecipeImageCount(recipeId):
-    print(os.listdir('./assets/image/recipe-'+recipeId+'/'))
     count = len(os.listdir('./assets/image/recipe-'+recipeId+'/'))
     return json.dumps({'data':count})
 

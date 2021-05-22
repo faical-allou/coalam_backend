@@ -1,9 +1,12 @@
 {
   "ExpandedNodes": [
     "",
+    "\\assets",
+    "\\assets\\data",
+    "\\assets\\image",
     "\\src",
     "\\src\\models"
   ],
-  "SelectedNode": "\\src\\models\\dataInterface.py",
+  "SelectedNode": "\\src\\app.py",
   "PreviewInSolutionExplorer": false
 }

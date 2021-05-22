@@ -1,3 +1,3 @@
-﻿id,recipe,chef,ingredient,tools
+﻿id,title,chef,ingredient,tools
 1,Classic Burger,Faical Allou,"{meat, cheese, bun}","{Pan, Spatula}"
 2,Pizza,Faicalito,"{flour, olive oil, tomatoes, mozarella}","{Oven, Rolling Pin}"
