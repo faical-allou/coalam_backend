@@ -1,3 +1,3 @@
 ﻿id,recipe,chef,ingredient,tools
-1,Classic Burger,Faical Allou,"{meat, cheese, bun}","{pan, spatula}"
-2,BBQ Burger,Faical Allou,"{meat, smoked cheese, brioche bun, BBQ sauce}","{pan, spatula, smoker}"
+1,Classic Burger,Faical Allou,"{meat, cheese, bun}","{Pan, Spatula}"
+2,Pizza,Faicalito,"{flour, olive oil, tomatoes, mozarella}","{Oven, Rolling Pin}"
