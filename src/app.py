@@ -45,4 +45,9 @@ def getRecipeImage(recipeId,id):
 
 
 if __name__ == '__main__':
-   app.run(host='0.0.0.0', port=5000)
+    # Bind to PORT if defined, otherwise default to 5000.
+    port = int(os.environ.get('PORT', 5000))
+    if os.environ.get('ON_HEROKU'):
+        app.run(host='0.0.0.0', port=port)
+    else :
+        app.run(host='localhost', port=port)

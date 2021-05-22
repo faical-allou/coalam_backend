@@ -20,4 +20,4 @@ RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
 COPY . .
 
 #Run the container
-CMD [ "pipenv", "run","python", ".src/app.py" ]
+CMD [ "pipenv", "run","python", "./src/app.py" ]
