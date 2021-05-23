@@ -1,7 +1,7 @@
 from flask import Flask, send_file
 import simplejson as json
 import os, os.path
-
+from werkzeug.serving import WSGIRequestHandler
 
 from models.dataInterface import *
 
@@ -46,6 +46,7 @@ def getRecipeImage(recipeId,id):
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
+    WSGIRequestHandler.protocol_version = "HTTP/1.1"
     if os.environ.get('ON_HEROKU'):
         app.run(host='0.0.0.0', port=port)
     else :
