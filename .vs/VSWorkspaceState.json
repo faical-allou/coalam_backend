@@ -4,8 +4,13 @@
     "\\src",
     "\\src\\models",
     "\\static",
-    "\\static\\image"
+    "\\static\\data",
+    "\\static\\image",
+    "\\static\\image\\chef-1",
+    "\\static\\image\\chef-2",
+    "\\static\\image\\chef-3",
+    "\\static\\image\\recipe-3"
   ],
-  "SelectedNode": "\\static\\image\\X.jpeg",
+  "SelectedNode": "\\static\\data\\chefs.csv",
   "PreviewInSolutionExplorer": false
 }

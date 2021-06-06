@@ -22,20 +22,29 @@ dataInterface = dataInterface()
 def hello():
     return 'Hello World! from the container'
 
+
 @app.route('/all')
 def getAllrecipes():
     listRecipes = dataInterface.getAllRecipes()
     return listRecipes
 
-@app.route('/<id>')
+
+@app.route('/recipe/<id>')
 def getRecipeId(id):
     recipe = dataInterface.getRecipebyId(id)
     return recipe
+
+@app.route('/chef/<id>')
+def getChefId(id):
+    chef = dataInterface.getChefbyId(id)
+    print(chef)
+    return chef
 
 @app.route('/get_image/<recipeId>/count')
 def getRecipeImageCount(recipeId):
     count = len(os.listdir('./static/image/recipe-'+recipeId+'/'))
     return json.dumps({'data':count})
+
 
 @app.route('/get_image/<recipeId>/<id>')
 def getRecipeImage(recipeId,id):
@@ -47,6 +56,18 @@ def getRecipeImage(recipeId,id):
        return send_file(filename, mimetype='image/gif')
     return 
 
+@app.route('/get_image/<id>')
+def getChefImage(id):
+    try:
+       filename = '../static/image/chef-'+id+'.jpg'
+       return send_file(filename, mimetype='image/jpg')
+    except:
+       filename = '../static/image/empty-profile.png'
+       return send_file(filename, mimetype='image/gif')
+    return 
+
+
+
 @app.route('/get_schedule/<recipeId>/<chefId>')
 def getSchedule(recipeId,chefId):
     query = recipeId + '-' + chefId
@@ -57,12 +78,10 @@ def getSchedule(recipeId,chefId):
     jsonX = x.json()
     return jsonX
 
+
 @app.route('/edit_recipe/', methods=['POST'])
-def addRecipe():
+def editRecipe():
     data = dict(request.form)
-
-    
-
     dataDF = recipe(data['chefId'],data['recipeId'],data['recipeName'],data['recipeDescription'],data['ingredients'],data['tools'])
     if data['recipeId']=='0':
         data['recipeId'] = str(dataInterface.getMaxRecipeId() +1)
@@ -71,7 +90,6 @@ def addRecipe():
         dataInterface.updateRecipe(dataDF)
         print('inserting')
     
-
     if len(request.files) > 0:
         file = request.files['image1']
         if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'],'recipe-'+data['recipeId'])):
@@ -80,6 +98,27 @@ def addRecipe():
             os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'],'recipe-'+data['recipeId']))
             file.save(os.path.join(app.config['UPLOAD_FOLDER'],'recipe-'+data['recipeId'],'1.jpg'))
     return json.dumps({'recipeId':data['recipeId'], 'chefId':data['chefId'], 'status':'success'})
+
+
+@app.route('/edit_account/', methods=['POST'])
+def editAccount():
+    data = dict(request.form)
+    dataDF = chef(data['chefId'],data['chefName'],data['chefDescription'])
+    if data['chefId']=='0':
+        data['chefId'] = str(dataInterface.getMaxChefId() +1)
+        dataInterface.insertChef(dataDF)
+        print('inserted')
+    else:
+        dataInterface.updateChef(dataDF)
+        print('updated')
+    return json.dumps({'chefId':data['chefId'], 'status':'success'})
+
+@app.route('/delete_recipe/<id>')
+def doDeleteRecipe(id):
+    dataInterface.deleteRecipe(id)
+        
+    return 'deleted'
+ 
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.

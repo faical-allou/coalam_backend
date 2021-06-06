@@ -15,9 +15,10 @@ class recipe:
         self.tools = tools
     
 class chef:
-    def __init__(self, chefId, chefName):
+    def __init__(self, chefId, chefName, chefDescription):
         self.chefId = chefId
         self.chefName = chefName
+        self.chefDescription = chefDescription
 
 
 
@@ -35,52 +36,76 @@ class dataInterface:
         result = result.to_json(orient="records")
         return result
     
-    def insertRecipe(self, recipe):
-        
+    def getChefbyId(self, inputId):
+
+        chefs = pd.read_csv('./static/data/chefs.csv')
+
+        if inputId == '0':
+            result = json.dumps([vars(chef(0,'NoName', 'NoName'))])           
+        else:
+            result = chefs[chefs['chefId'].astype(str) == inputId]
+            result = result.to_json(orient="records")
+        return result
+    
+
+    def insertRecipe(self, recipe):       
         recipes = pd.read_csv('./static/data/recipes.csv')
-
         data = vars(recipe)
-
         _chef = json.loads(self.getChefbyId(data['chefId']))
         print(_chef)
         data['chefName'] = _chef[0]['chefName']
-
         data['recipeId'] = self.getMaxRecipeId()+1
         df = recipes.append(data, ignore_index=True)
-        df.to_csv('./static/data/recipes.csv', index = False)
-               
+        df.to_csv('./static/data/recipes.csv', index = False)               
         return '1'
 
-    def updateRecipe(self, recipe):
-        
+    def updateRecipe(self, recipe):       
         recipes = pd.read_csv('./static/data/recipes.csv')
         recipes['recipeId'] =  recipes['recipeId'].astype(str)
         data = vars(recipe)
-
         _chef = json.loads(self.getChefbyId(data['chefId']))
-
         data['chefName'] = _chef[0]['chefName']
         recipeId = data['recipeId']
         for column in recipes:
             if data[column] != '':
                 recipes.loc[recipes['recipeId'] == recipeId, column] = data[column]
-
-        recipes.to_csv('./static/data/recipes.csv', index = False)
-               
+        recipes.to_csv('./static/data/recipes.csv', index = False)              
         return '1'
     
-    def getChefbyId(self, inputId):
-        
+    def insertChef(self, chef):       
         chefs = pd.read_csv('./static/data/chefs.csv')
-        result = chefs[chefs['chefId'].astype(str) == inputId]
+        data = vars(chef)
 
-        result = result.to_json(orient="records")
+        data['chefId'] = self.getMaxChefId()+1
+        df = chefs.append(data, ignore_index=True)
+        df.to_csv('./static/data/chefs.csv', index = False)               
+        return '1'
 
-        return result
-
-    def getMaxRecipeId(self):
+    def updateChef(self, chef):       
+        chefs = pd.read_csv('./static/data/chefs.csv')
+        chefs['chefId'] =  chefs['chefId'].astype(str)
+        data = vars(chef)
         
+        chefId = data['chefId']
+        for column in chefs:
+            if data[column] != '':
+                chefs.loc[chefs['chefId'] == chefId, column] = data[column]
+        chefs.to_csv('./static/data/chefs.csv', index = False)              
+        return '1'
+
+    def getMaxRecipeId(self):       
         recipes = pd.read_csv('./static/data/recipes.csv')
         result = len(recipes)
-
         return result
+
+    def getMaxChefId(self):       
+        chefs = pd.read_csv('./static/data/chefs.csv')
+        result = len(chefs)
+        return result
+
+    def deleteRecipe(self, recipeId):       
+        recipes = pd.read_csv('./static/data/recipes.csv')
+        df = recipes[recipes.recipeId != int(recipeId)]
+        
+        df.to_csv('./static/data/recipes.csv', index = False)               
+        return '1'
