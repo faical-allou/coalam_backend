@@ -5,6 +5,7 @@ from werkzeug.serving import WSGIRequestHandler
 import datetime
 import os.path
 import requests
+import shutil
 
 from models.dataInterface import *
 import config
@@ -111,14 +112,34 @@ def editAccount():
     else:
         dataInterface.updateChef(dataDF)
         print('updated')
+
+    if len(request.files) > 0:
+            file = request.files['image1']
+            if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'],'chef-'+data['chefId'])):
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'],'chef-'+data['chefId'],'1.jpg'))
+            else:
+                os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'],'chef-'+data['chefId']))
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'],'chef-'+data['chefId'],'1.jpg'))
+
     return json.dumps({'chefId':data['chefId'], 'status':'success'})
 
 @app.route('/delete_recipe/<id>')
 def doDeleteRecipe(id):
     dataInterface.deleteRecipe(id)
-        
+    try:
+        shutil.rmtree(os.path.join(app.config['UPLOAD_FOLDER'],'recipe-'+id))
+    except:
+        print('problem when deleting Recipe')
     return 'deleted'
  
+@app.route('/delete_chef/<id>')
+def doDeleteChef(id):
+    dataInterface.deleteChef(id)
+    try:
+        shutil.rmtree(os.path.join(app.config['UPLOAD_FOLDER'],'chef-'+id))
+    except:
+        print('problem when deleting Chef')
+    return 'deleted'
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.

@@ -95,12 +95,12 @@ class dataInterface:
 
     def getMaxRecipeId(self):       
         recipes = pd.read_csv('./static/data/recipes.csv')
-        result = len(recipes)
+        result = max(recipes['recipeId'])
         return result
 
     def getMaxChefId(self):       
         chefs = pd.read_csv('./static/data/chefs.csv')
-        result = len(chefs)
+        result = max(chefs['chefId'])
         return result
 
     def deleteRecipe(self, recipeId):       
@@ -108,4 +108,11 @@ class dataInterface:
         df = recipes[recipes.recipeId != int(recipeId)]
         
         df.to_csv('./static/data/recipes.csv', index = False)               
+        return '1'
+
+    def deleteChef(self, chefId):       
+        chefs = pd.read_csv('./static/data/chefs.csv')
+        df = chefs[chefs.chefId != int(chefId)]
+        
+        df.to_csv('./static/data/chefs.csv', index = False)               
         return '1'

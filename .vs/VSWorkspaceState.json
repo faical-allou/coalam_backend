@@ -5,12 +5,8 @@
     "\\src\\models",
     "\\static",
     "\\static\\data",
-    "\\static\\image",
-    "\\static\\image\\chef-1",
-    "\\static\\image\\chef-2",
-    "\\static\\image\\chef-3",
-    "\\static\\image\\recipe-3"
+    "\\static\\image"
   ],
-  "SelectedNode": "\\.gitignore",
+  "SelectedNode": "\\static\\data\\chefs.csv",
   "PreviewInSolutionExplorer": false
 }
