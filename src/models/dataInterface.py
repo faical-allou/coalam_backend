@@ -75,7 +75,6 @@ class dataInterface:
     def insertChef(self, chef):       
         chefs = pd.read_csv('./static/data/chefs.csv')
         data = vars(chef)
-
         data['chefId'] = self.getMaxChefId()+1
         df = chefs.append(data, ignore_index=True)
         df.to_csv('./static/data/chefs.csv', index = False)               
@@ -84,8 +83,7 @@ class dataInterface:
     def updateChef(self, chef):       
         chefs = pd.read_csv('./static/data/chefs.csv')
         chefs['chefId'] =  chefs['chefId'].astype(str)
-        data = vars(chef)
-        
+        data = vars(chef)    
         chefId = data['chefId']
         for column in chefs:
             if data[column] != '':

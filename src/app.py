@@ -60,13 +60,12 @@ def getRecipeImage(recipeId,id):
 @app.route('/get_image/<id>')
 def getChefImage(id):
     try:
-       filename = '../static/image/chef-'+id+'.jpg'
+       filename = '../static/image/chef-'+id+'/1.jpg'
        return send_file(filename, mimetype='image/jpg')
     except:
        filename = '../static/image/empty-profile.png'
        return send_file(filename, mimetype='image/gif')
     return 
-
 
 
 @app.route('/get_schedule/<recipeId>/<chefId>')
