@@ -1,17 +1,15 @@
-from flask import Flask, send_file, request
+from flask import Flask, send_file, request, redirect, url_for, abort
 import simplejson as json
 import os, os.path
 from werkzeug.serving import WSGIRequestHandler
 import datetime
 import os.path
-import requests
 import shutil
+import requests
 
 from models.dataInterface import *
 import config
 
-# simple version for working with CWD
-print 
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = './static/image/'
@@ -23,32 +21,44 @@ dataInterface = dataInterface()
 def hello():
     return 'Hello World! from the container'
 
+def authorize(key):
+    if key == config.appkey:
+        print('authorized')
+    else:
+        print('not authorized')
+        abort(404) 
+        
 
 @app.route('/all')
 def getAllrecipes():
+    authorize(request.headers['Authorization'])
     listRecipes = dataInterface.getAllRecipes()
     return listRecipes
 
 
 @app.route('/recipe/<id>')
 def getRecipeId(id):
+    authorize(request.headers['Authorization'])
     recipe = dataInterface.getRecipebyId(id)
     return recipe
 
 @app.route('/chef/<id>')
 def getChefId(id):
+    authorize(request.headers['Authorization'])
     chef = dataInterface.getChefbyId(id)
     print(chef)
     return chef
 
 @app.route('/get_image/<recipeId>/count')
 def getRecipeImageCount(recipeId):
+    authorize(request.headers['Authorization'])
     count = len(os.listdir('./static/image/recipe-'+recipeId+'/'))
     return json.dumps({'data':count})
 
 
 @app.route('/get_image/<recipeId>/<id>')
 def getRecipeImage(recipeId,id):
+    authorize(request.headers['Authorization'])
     try:
        filename = '../static/image/recipe-'+recipeId+'/'+id+'.jpg'
        return send_file(filename, mimetype='image/jpg')
@@ -59,6 +69,7 @@ def getRecipeImage(recipeId,id):
 
 @app.route('/get_image/<id>')
 def getChefImage(id):
+    authorize(request.headers['Authorization'])
     try:
        filename = '../static/image/chef-'+id+'/1.jpg'
        return send_file(filename, mimetype='image/jpg')
@@ -70,6 +81,7 @@ def getChefImage(id):
 
 @app.route('/get_schedule/<recipeId>/<chefId>')
 def getSchedule(recipeId,chefId):
+    authorize(request.headers['Authorization'])
     query = recipeId + '-' + chefId
     calendar = config.calendar
     key = config.key
@@ -81,6 +93,7 @@ def getSchedule(recipeId,chefId):
 
 @app.route('/edit_recipe/', methods=['POST'])
 def editRecipe():
+    authorize(request.headers['Authorization'])
     data = dict(request.form)
     dataDF = recipe(data['chefId'],data['recipeId'],data['recipeName'],data['recipeDescription'],data['ingredients'],data['tools'])
     if data['recipeId']=='0':
@@ -102,6 +115,7 @@ def editRecipe():
 
 @app.route('/edit_account/', methods=['POST'])
 def editAccount():
+    authorize(request.headers['Authorization'])
     data = dict(request.form)
     dataDF = chef(data['chefId'],data['chefName'],data['chefDescription'])
     if data['chefId']=='0':
@@ -124,6 +138,7 @@ def editAccount():
 
 @app.route('/delete_recipe/<id>')
 def doDeleteRecipe(id):
+    authorize(request.headers['Authorization'])
     dataInterface.deleteRecipe(id)
     try:
         shutil.rmtree(os.path.join(app.config['UPLOAD_FOLDER'],'recipe-'+id))
@@ -133,12 +148,17 @@ def doDeleteRecipe(id):
  
 @app.route('/delete_chef/<id>')
 def doDeleteChef(id):
+    authorize(request.headers['Authorization'])
     dataInterface.deleteChef(id)
     try:
         shutil.rmtree(os.path.join(app.config['UPLOAD_FOLDER'],'chef-'+id))
     except:
         print('problem when deleting Chef')
     return 'deleted'
+
+
+
+
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.

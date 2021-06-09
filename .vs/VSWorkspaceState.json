@@ -2,11 +2,10 @@
   "ExpandedNodes": [
     "",
     "\\src",
+    "\\src\\config",
     "\\src\\models",
-    "\\static",
-    "\\static\\data",
-    "\\static\\image"
+    "\\static"
   ],
-  "SelectedNode": "\\static\\data\\chefs.csv",
+  "SelectedNode": "\\src\\models\\dataInterface.py",
   "PreviewInSolutionExplorer": false
 }
