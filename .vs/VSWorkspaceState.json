@@ -2,10 +2,9 @@
   "ExpandedNodes": [
     "",
     "\\src",
-    "\\src\\config",
     "\\src\\models",
     "\\static"
   ],
-  "SelectedNode": "\\src\\models\\dataInterface.py",
+  "SelectedNode": "\\src\\app.py",
   "PreviewInSolutionExplorer": false
 }

@@ -58,7 +58,7 @@ def getRecipeImageCount(recipeId):
 
 @app.route('/get_image/<recipeId>/<id>')
 def getRecipeImage(recipeId,id):
-    authorize(request.headers['Authorization'])
+   # authorize(request.headers['Authorization'])
     try:
        filename = '../static/image/recipe-'+recipeId+'/'+id+'.jpg'
        return send_file(filename, mimetype='image/jpg')
@@ -69,7 +69,7 @@ def getRecipeImage(recipeId,id):
 
 @app.route('/get_image/<id>')
 def getChefImage(id):
-    authorize(request.headers['Authorization'])
+    # authorize(request.headers['Authorization'])
     try:
        filename = '../static/image/chef-'+id+'/1.jpg'
        return send_file(filename, mimetype='image/jpg')
@@ -167,4 +167,4 @@ if __name__ == '__main__':
     if os.environ.get('ON_HEROKU'):
         app.run(host='0.0.0.0', port=port)
     else :
-        app.run(host='localhost', port=port, debug=True)
+        app.run(host='0.0.0.0', port=port, debug=True)
