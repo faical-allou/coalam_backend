@@ -1,8 +1,9 @@
 assets/
-.vs/
+.vscode/
 src/config.py
 credentials.json
 .vscode/*
 *.pyc
 .vs/*
 token.json
+static/
