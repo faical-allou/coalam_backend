@@ -2,3 +2,6 @@ assets/
 .vs/
 src/config.py
 credentials.json
+.vscode/*
+*.pyc
+.vs/*
