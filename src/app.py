@@ -93,7 +93,6 @@ def getSchedule(chefId,recipeId):
     url = 'https://www.googleapis.com/calendar/v3/calendars/'+calendarId+'/events?q='+query+'&key='+key
     x = requests.get(url)
     jsonX = x.json()
-    print(jsonX)
     return jsonX
 
 @app.route('/v1/add_event/<chefId>/<recipeId>', methods=['POST'])
@@ -205,7 +204,7 @@ def doDeleteChef(id):
 
 if __name__ == '__main__':
     # Doing the google authentification
-    SCOPES = ['https://www.googleapis.com/auth/calendar']
+    SCOPES = ['https://www.googleapis.com/auth/calendar.event']
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
