@@ -1,9 +1,11 @@
-assets/
 .vscode/
-src/config.py
-credentials.json
 .vscode/*
 *.pyc
 .vs/*
-token.json
+
+assets/
 static/
+src/config.py
+credentials.json
+token.json
+cloudstorage_creds.json

@@ -6,6 +6,7 @@ import datetime
 import os.path
 import shutil
 import requests
+import sys
 
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -13,18 +14,23 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 
 from models.dataInterface import *
-import config
+from models.imageInterface import *
 
+import config
+from google.cloud import storage
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="cloudstorage_creds.json"
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = './static/image/'
 
 dataInterface = dataInterface()
+imageInterface = imageInterface()
+
 
 
 @app.route('/')
 def hello():
-    return 'Hello World! from the container'
+    return send_file("../static/image/tempr1-1.jpg", mimetype='image/jpg')
 
 def authorize(key):
     if key == config.appkey:
@@ -33,7 +39,6 @@ def authorize(key):
         print('not authorized')
         abort(404) 
         
-
 @app.route('/v1/all')
 def getAllrecipes():
     authorize(request.headers['Authorization'])
@@ -51,37 +56,25 @@ def getRecipeId(id):
 def getChefId(id):
     authorize(request.headers['Authorization'])
     chef = dataInterface.getChefbyId(id)
-    print(chef)
     return chef
 
 @app.route('/v1/get_image/<recipeId>/count')
 def getRecipeImageCount(recipeId):
     authorize(request.headers['Authorization'])
-    count = len(os.listdir('./static/image/recipe-'+recipeId+'/'))
+    count = imageInterface.getCountImages('image/recipe-'+recipeId)
     return json.dumps({'data':count})
 
 
 @app.route('/v1/get_image/<recipeId>/<id>')
 def getRecipeImage(recipeId,id):
-   # authorize(request.headers['Authorization'])
-    try:
-       filename = '../static/image/recipe-'+recipeId+'/'+id+'.jpg'
-       return send_file(filename, mimetype='image/jpg')
-    except:
-       filename = '../static/image/error404.gif'
-       return send_file(filename, mimetype='image/gif')
-    return 
+    # authorize(request.headers['Authorization'])
+    return imageInterface.getRecipeImage(recipeId,id)
+
 
 @app.route('/v1/get_image/<id>')
 def getChefImage(id):
     # authorize(request.headers['Authorization'])
-    try:
-       filename = '../static/image/chef-'+id+'/1.jpg'
-       return send_file(filename, mimetype='image/jpg')
-    except:
-       filename = '../static/image/empty-profile.png'
-       return send_file(filename, mimetype='image/gif')
-    return 
+    return imageInterface.getChefImage(id)
 
 
 @app.route('/v1/get_schedule/<chefId>/<recipeId>')
@@ -89,7 +82,7 @@ def getSchedule(chefId,recipeId):
     #authorize(request.headers['Authorization'])
     query = chefId + '-' + recipeId 
     calendarId = config.calendarIdpct
-    key = config.key
+    key = config.Gkey
     url = 'https://www.googleapis.com/calendar/v3/calendars/'+calendarId+'/events?q='+query+'&key='+key
     x = requests.get(url)
     jsonX = x.json()
@@ -127,10 +120,8 @@ def addEvent(chefId,recipeId):
 
 @app.route('/v1/delete_event/<eventId>', )
 def deleteEvent(eventId):
-    authorize(request.headers['Authorization'])
-    
+    authorize(request.headers['Authorization'])   
     event = service.events().delete(calendarId=config.calendarIdat, eventId=eventId).execute()
-     
     return 'event deleted'
 
 @app.route('/v1/edit_recipe/', methods=['POST'])
@@ -147,11 +138,8 @@ def editRecipe():
     
     if len(request.files) > 0:
         file = request.files['image1']
-        if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'],'recipe-'+data['recipeId'])):
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'],'recipe-'+data['recipeId'],'1.jpg'))
-        else:
-            os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'],'recipe-'+data['recipeId']))
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'],'recipe-'+data['recipeId'],'1.jpg'))
+        imageInterface.addimage(file,'image/recipe-'+data['recipeId']+'/1.jpg' )
+
     return json.dumps({'recipeId':data['recipeId'], 'chefId':data['chefId'], 'status':'success'})
 
 
@@ -170,12 +158,7 @@ def editAccount():
 
     if len(request.files) > 0:
             file = request.files['image1']
-            if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'],'chef-'+data['chefId'])):
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'],'chef-'+data['chefId'],'1.jpg'))
-            else:
-                os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'],'chef-'+data['chefId']))
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'],'chef-'+data['chefId'],'1.jpg'))
-
+            imageInterface.addimage(file,'image/chef-'+data['chefId']+'/1.jpg' )
     return json.dumps({'chefId':data['chefId'], 'status':'success'})
 
 @app.route('/v1/delete_recipe/<id>')
@@ -183,9 +166,10 @@ def doDeleteRecipe(id):
     authorize(request.headers['Authorization'])
     dataInterface.deleteRecipe(id)
     try:
-        shutil.rmtree(os.path.join(app.config['UPLOAD_FOLDER'],'recipe-'+id))
-    except:
+        imageInterface.deleteFiles('image/recipe-'+id)
+    except Exception as e:
         print('problem when deleting Recipe')
+        print( e )
     return 'deleted'
  
 @app.route('/v1/delete_chef/<id>')
@@ -193,18 +177,17 @@ def doDeleteChef(id):
     authorize(request.headers['Authorization'])
     dataInterface.deleteChef(id)
     try:
-        shutil.rmtree(os.path.join(app.config['UPLOAD_FOLDER'],'chef-'+id))
-    except:
+        imageInterface.deleteFiles('image/chef-'+id)
+    except Exception as e:
         print('problem when deleting Chef')
+        print( e )
     return 'deleted'
-
-
 
 
 
 if __name__ == '__main__':
     # Doing the google authentification
-    SCOPES = ['https://www.googleapis.com/auth/calendar.event']
+    SCOPES = ['https://www.googleapis.com/auth/calendar']
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
