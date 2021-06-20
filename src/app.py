@@ -143,11 +143,8 @@ def editRecipe():
     print('request.files length is: ' + str(len(request.files)) )
         
     if len(request.files) > 0:
-        file = request.files['image1']
-        image = Image.open(file)
-        rgb_image = image.convert('RGB')
-        rgb_image.save(os.path.join('./static/image/', 'temp.jpg'))
-        imageInterface.addimage('./static/image/temp.jpg','image/recipe-'+data['recipeId']+'/1.jpg' )
+        bytefile = request.files['image1']
+        imageInterface.addimage(bytefile,'image/recipe-'+data['recipeId']+'/1.jpg' )
         print('saved as ' + 'image/recipe-'+data['recipeId']+'/1.jpg')
 
     return json.dumps({'recipeId':data['recipeId'], 'chefId':data['chefId'], 'status':'success'})
@@ -168,11 +165,8 @@ def editAccount():
 
     print('request.files length is: ' + str(len(request.files)) )        
     if len(request.files) > 0:
-        file = request.files['image1']
-        image = Image.open(file)
-        rgb_image = image.convert('RGB')
-        rgb_image.save(os.path.join('./static/image/', 'temp.jpg'))
-        imageInterface.addimage('./static/image/temp.jpg','image/chef-'+data['chefId']+'/1.jpg' )
+        bytefile = request.files['image1']
+        imageInterface.addimage(bytefile,'image/chef-'+data['chefId']+'/1.jpg' )
     return json.dumps({'chefId':data['chefId'], 'status':'success'})
 
 @app.route('/v1/delete_recipe/<id>')

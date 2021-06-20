@@ -6,6 +6,8 @@ from flask import send_file
 from google.cloud import storage
 import random
 import config
+import PIL.Image as Image
+import io
 
 class imageInterface:
 
@@ -68,8 +70,12 @@ class imageInterface:
             filename = '../static/image/empty-profile.png'
             return send_file(filename, mimetype='image/gif')  
     
-    def addimage(self, path, destination):
-        self.upload_blob(config.Gcloudbucket,path,destination)
+    def addimage(self, bytefile, destination):
+        _path = './static/temp/'+str(random.randint(0,100))+'.jpg'
+        image = Image.open(bytefile)
+        rgb_image = image.convert('RGB')
+        rgb_image.save(_path)
+        self.upload_blob(config.Gcloudbucket,_path,destination)
     
     def deleteFiles(self, folderpath):       
         self.delete_manyblobs(config.Gcloudbucket, folderpath)

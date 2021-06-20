@@ -37,9 +37,7 @@ class dataInterface:
         return result
     
     def getChefbyId(self, inputId):
-
         chefs = pd.read_csv('./static/data/chefs.csv')
-
         if inputId == '0':
             result = json.dumps([vars(chef(0,'NoName', 'NoName'))])           
         else:
