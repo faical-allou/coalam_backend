@@ -141,18 +141,12 @@ def editRecipe():
         print('inserting')
     
     print('request.files length is: ' + str(len(request.files)) )
-    
-    for key,value in data.items():
-        print(key, len(value))
-    
+        
     if len(request.files) > 0:
-        print('got a file')
         file = request.files['image1']
         image = Image.open(file)
         rgb_image = image.convert('RGB')
-        print('read it')
         rgb_image.save(os.path.join('./static/image/', 'temp.jpg'))
-        print('saved it')
         imageInterface.addimage('./static/image/temp.jpg','image/recipe-'+data['recipeId']+'/1.jpg' )
         print('saved as ' + 'image/recipe-'+data['recipeId']+'/1.jpg')
 
@@ -172,9 +166,13 @@ def editAccount():
         dataInterface.updateChef(dataDF)
         print('updated')
 
+    print('request.files length is: ' + str(len(request.files)) )        
     if len(request.files) > 0:
         file = request.files['image1']
-        imageInterface.addimage(file,'image/chef-'+data['chefId']+'/1.jpg' )
+        image = Image.open(file)
+        rgb_image = image.convert('RGB')
+        rgb_image.save(os.path.join('./static/image/', 'temp.jpg'))
+        imageInterface.addimage('./static/image/temp.jpg','image/chef-'+data['chefId']+'/1.jpg' )
     return json.dumps({'chefId':data['chefId'], 'status':'success'})
 
 @app.route('/v1/delete_recipe/<id>')
