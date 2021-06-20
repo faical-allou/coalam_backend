@@ -68,10 +68,8 @@ class imageInterface:
             filename = '../static/image/empty-profile.png'
             return send_file(filename, mimetype='image/gif')  
     
-    def addimage(self, file, destination):
-        tempfilename = "./static/temp/"+str(random.randint(0,1000))
-        file.save(tempfilename)
-        self.upload_blob(config.Gcloudbucket,tempfilename,destination)
+    def addimage(self, path, destination):
+        self.upload_blob(config.Gcloudbucket,path,destination)
     
     def deleteFiles(self, folderpath):       
         self.delete_manyblobs(config.Gcloudbucket, folderpath)

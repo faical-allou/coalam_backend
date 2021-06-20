@@ -1,4 +1,6 @@
 from flask import Flask, send_file, request, redirect, url_for, abort
+from flask_cors import CORS
+
 import simplejson as json
 import os, os.path
 from werkzeug.serving import WSGIRequestHandler
@@ -7,6 +9,8 @@ import os.path
 import shutil
 import requests
 import sys
+import PIL.Image as Image
+import io
 
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -22,7 +26,7 @@ from google.cloud import storage
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="cloudstorage_creds.json"
 
 app = Flask(__name__)
-
+CORS(app)
 dataInterface = dataInterface()
 imageInterface = imageInterface()
 
@@ -30,7 +34,7 @@ imageInterface = imageInterface()
 
 @app.route('/')
 def hello():
-    return send_file("../static/image/tempr1-1.jpg", mimetype='image/jpg')
+    return 'Hello there'
 
 def authorize(key):
     if key == config.appkey:
@@ -136,9 +140,21 @@ def editRecipe():
         dataInterface.updateRecipe(dataDF)
         print('inserting')
     
+    print('request.files length is: ' + str(len(request.files)) )
+    
+    for key,value in data.items():
+        print(key, len(value))
+    
     if len(request.files) > 0:
+        print('got a file')
         file = request.files['image1']
-        imageInterface.addimage(file,'image/recipe-'+data['recipeId']+'/1.jpg' )
+        image = Image.open(file)
+        rgb_image = image.convert('RGB')
+        print('read it')
+        rgb_image.save(os.path.join('./static/image/', 'temp.jpg'))
+        print('saved it')
+        imageInterface.addimage('./static/image/temp.jpg','image/recipe-'+data['recipeId']+'/1.jpg' )
+        print('saved as ' + 'image/recipe-'+data['recipeId']+'/1.jpg')
 
     return json.dumps({'recipeId':data['recipeId'], 'chefId':data['chefId'], 'status':'success'})
 
@@ -157,8 +173,8 @@ def editAccount():
         print('updated')
 
     if len(request.files) > 0:
-            file = request.files['image1']
-            imageInterface.addimage(file,'image/chef-'+data['chefId']+'/1.jpg' )
+        file = request.files['image1']
+        imageInterface.addimage(file,'image/chef-'+data['chefId']+'/1.jpg' )
     return json.dumps({'chefId':data['chefId'], 'status':'success'})
 
 @app.route('/v1/delete_recipe/<id>')
