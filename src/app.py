@@ -10,6 +10,7 @@ import shutil
 import requests
 import sys
 import PIL.Image as Image
+from PIL import ImageFile
 import io
 
 from googleapiclient.discovery import build
@@ -30,6 +31,7 @@ CORS(app)
 dataInterface = dataInterface()
 imageInterface = imageInterface()
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 @app.route('/')
@@ -47,6 +49,7 @@ def authorize(key):
 def getAllrecipes():
     authorize(request.headers['Authorization'])
     listRecipes = dataInterface.getAllRecipes()
+    print(listRecipes)
     return listRecipes
 
 
@@ -60,6 +63,16 @@ def getRecipeId(id):
 def getChefId(id):
     authorize(request.headers['Authorization'])
     chef = dataInterface.getChefbyId(id)
+    print(chef)
+    return chef
+
+@app.route('/v1/gchef/<id>')
+def getgChefId(id):
+    print('in gsearch')
+    print(id)
+    #authorize(request.headers['Authorization'])
+    chef = dataInterface.getChefbygId(id)
+    print(chef)
     return chef
 
 @app.route('/v1/get_image/<recipeId>/count')
@@ -154,9 +167,9 @@ def editRecipe():
 def editAccount():
     authorize(request.headers['Authorization'])
     data = dict(request.form)
-    dataDF = chef(data['chefId'],data['chefName'],data['chefDescription'])
+    dataDF = chef(data['gId'],data['chefId'],data['chefName'],data['chefDescription'])
     if data['chefId']=='0':
-        data['chefId'] = str(dataInterface.getMaxChefId() +1)
+        data['chefId'] = dataInterface.getMaxChefId() +1
         dataInterface.insertChef(dataDF)
         print('inserted')
     else:

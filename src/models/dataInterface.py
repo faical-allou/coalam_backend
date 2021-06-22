@@ -15,7 +15,8 @@ class recipe:
         self.tools = tools
     
 class chef:
-    def __init__(self, chefId, chefName, chefDescription):
+    def __init__(self, gId, chefId, chefName, chefDescription):
+        self.gId = gId
         self.chefId = chefId
         self.chefName = chefName
         self.chefDescription = chefDescription
@@ -37,14 +38,26 @@ class dataInterface:
         return result
     
     def getChefbyId(self, inputId):
-        chefs = pd.read_csv('./static/data/chefs.csv')
+        chefs = pd.read_csv('./static/data/chefs.csv',dtype=object)
         if inputId == '0':
-            result = json.dumps([vars(chef(0,'NoName', 'NoName'))])           
+            result = json.dumps([vars(chef("0",0,'', ''))])           
         else:
+            chefs['chefId'] = chefs['chefId'].astype(int)
             result = chefs[chefs['chefId'].astype(str) == inputId]
             result = result.to_json(orient="records")
         return result
     
+    def getChefbygId(self, gId):
+        chefs = pd.read_csv('./static/data/chefs.csv',dtype=object)
+        if len(chefs[chefs['gId'].astype(str) == str(gId)]) == 0:
+            result = json.dumps([vars(chef("0",0,'', ''))])           
+        else:
+            chefs['gId'] = chefs['gId'].astype(str)
+            chefs['chefId'] = chefs['chefId'].astype(int)
+            result = chefs[chefs['gId'] == str(gId)]
+
+            result = result.to_json(orient="records")
+        return result
 
     def insertRecipe(self, recipe):       
         recipes = pd.read_csv('./static/data/recipes.csv')
@@ -73,6 +86,7 @@ class dataInterface:
     def insertChef(self, chef):       
         chefs = pd.read_csv('./static/data/chefs.csv')
         data = vars(chef)
+        print(data)
         data['chefId'] = self.getMaxChefId()+1
         df = chefs.append(data, ignore_index=True)
         df.to_csv('./static/data/chefs.csv', index = False)               
