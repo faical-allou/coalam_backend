@@ -24,7 +24,7 @@ from models.imageInterface import *
 import config
 from google.cloud import storage
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="cloudstorage_creds.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="gcp.json"
 
 app = Flask(__name__)
 CORS(app)
@@ -34,8 +34,10 @@ imageInterface = imageInterface()
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
+
 @app.route('/')
 def hello():
+    eng = dataInterface.init_connection_engine()
     return 'Hello there'
 
 def authorize(key):
@@ -47,7 +49,7 @@ def authorize(key):
         
 @app.route('/v1/all')
 def getAllrecipes():
-    authorize(request.headers['Authorization'])
+    #authorize(request.headers['Authorization'])
     listRecipes = dataInterface.getAllRecipes()
     print(listRecipes)
     return listRecipes

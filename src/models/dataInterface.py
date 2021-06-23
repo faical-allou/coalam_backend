@@ -2,6 +2,11 @@ import simplejson as json
 import pandas as pd
 import pathlib
 import os
+import sqlalchemy
+import pg8000
+import config
+from google.cloud.sql.connector import connector
+
 from flask import send_file
 
 
@@ -23,9 +28,33 @@ class chef:
 
 
 
+
 class dataInterface:
+    def init_connection_engine(self) -> sqlalchemy.engine.Engine:
+        def getconn(self) -> pg8000.dbapi.Connection:
+            conn: pg8000.dbapi.Connection = connector.connect(
+                config.Gpostgres["hostname"],
+                "pg8000",
+                user=config.Gpostgres["user"],
+                password=config.Gpostgres["password"],
+                db=config.Gpostgres["database"],
+            )
+            return conn
+
+        engine = sqlalchemy.create_engine(
+            "postgresql+pg8000://",
+            creator=getconn,
+        )
+        engine.dialect.description_encoding = None
+        return engine
+
 
     def getAllRecipes(self ):
+        engine = self.init_connection_engine()
+        metadata = sqlalchemy.MetaData()
+        census = sqlalchemy.Table('chefs', metadata, autoload=True, autoload_with=engine)
+        print(census.columns.keys())
+        
         recipes = pd.read_csv('./static/data/recipes.csv')
         result = recipes.to_json(orient="records")
         return result

@@ -17,6 +17,10 @@ cloudinary = "*"
 google-cloud-storage = "*"
 flask-cors = "*"
 pillow = "*"
+psycopg2 = "*"
+sqlalchemy = "*"
+pg8000 = "*"
+cloud-sql-python-connector = {extras = ["pg8000"], version = "*"}
 
 [requires]
 python_version = "3.8"
