@@ -28,6 +28,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="gcp.json"
 
 app = Flask(__name__)
 CORS(app)
+
 dataInterface = dataInterface()
 imageInterface = imageInterface()
 
@@ -37,7 +38,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 @app.route('/')
 def hello():
-    eng = dataInterface.init_connection_engine()
+    eng = dataInterface.easyconnect()
     return 'Hello there'
 
 def authorize(key):
@@ -57,13 +58,13 @@ def getAllrecipes():
 
 @app.route('/v1/recipe/<id>')
 def getRecipeId(id):
-    authorize(request.headers['Authorization'])
+    #authorize(request.headers['Authorization'])
     recipe = dataInterface.getRecipebyId(id)
     return recipe
 
 @app.route('/v1/chef/<id>')
 def getChefId(id):
-    authorize(request.headers['Authorization'])
+    #authorize(request.headers['Authorization'])
     chef = dataInterface.getChefbyId(id)
     print(chef)
     return chef
@@ -79,7 +80,7 @@ def getgChefId(id):
 
 @app.route('/v1/get_image/<recipeId>/count')
 def getRecipeImageCount(recipeId):
-    authorize(request.headers['Authorization'])
+    #authorize(request.headers['Authorization'])
     count = imageInterface.getCountImages('image/recipe-'+recipeId)
     return json.dumps({'data':count})
 
@@ -139,13 +140,13 @@ def addEvent(chefId,recipeId):
 
 @app.route('/v1/delete_event/<eventId>', )
 def deleteEvent(eventId):
-    authorize(request.headers['Authorization'])   
+    #authorize(request.headers['Authorization'])   
     event = service.events().delete(calendarId=config.calendarIdat, eventId=eventId).execute()
     return 'event deleted'
 
 @app.route('/v1/edit_recipe/', methods=['POST'])
 def editRecipe():
-    authorize(request.headers['Authorization'])
+    #authorize(request.headers['Authorization'])
     data = dict(request.form)
     dataDF = recipe(data['chefId'],data['recipeId'],data['recipeName'],data['recipeDescription'],data['ingredients'],data['tools'])
     if data['recipeId']=='0':
@@ -167,7 +168,7 @@ def editRecipe():
 
 @app.route('/v1/edit_account/', methods=['POST'])
 def editAccount():
-    authorize(request.headers['Authorization'])
+    #authorize(request.headers['Authorization'])
     data = dict(request.form)
     dataDF = chef(data['gId'],data['chefId'],data['chefName'],data['chefDescription'])
     if data['chefId']=='0':
@@ -186,7 +187,7 @@ def editAccount():
 
 @app.route('/v1/delete_recipe/<id>')
 def doDeleteRecipe(id):
-    authorize(request.headers['Authorization'])
+    #authorize(request.headers['Authorization'])
     dataInterface.deleteRecipe(id)
     try:
         imageInterface.deleteFiles('image/recipe-'+id)
@@ -197,7 +198,7 @@ def doDeleteRecipe(id):
  
 @app.route('/v1/delete_chef/<id>')
 def doDeleteChef(id):
-    authorize(request.headers['Authorization'])
+    #authorize(request.headers['Authorization'])
     dataInterface.deleteChef(id)
     try:
         imageInterface.deleteFiles('image/chef-'+id)
@@ -233,10 +234,10 @@ if __name__ == '__main__':
 
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
     if os.environ.get('ON_HEROKU'):
-        port = int(os.environ.get('PORT', 5000))
+        port = int(os.environ.get('PORT', 8080))
         app.run(host='0.0.0.0', port=port)
     else :
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        app.run(host='0.0.0.0', port=8080, debug=True)
 
 
 

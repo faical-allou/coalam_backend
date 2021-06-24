@@ -1,0 +1,5 @@
+runtime: custom
+env: flex
+
+beta_settings:
+  cloud_sql_instances: coalam-e2dce:europe-west1:coalam-postgres=tcp:3000

@@ -10,6 +10,7 @@ from google.cloud.sql.connector import connector
 from flask import send_file
 
 
+
 class recipe:
     def __init__(self, chefId, recipeId, recipeName, description, ingredients, tools):
         self.chefId = chefId
@@ -26,35 +27,22 @@ class chef:
         self.chefName = chefName
         self.chefDescription = chefDescription
 
-
-
-
 class dataInterface:
-    def init_connection_engine(self) -> sqlalchemy.engine.Engine:
-        def getconn(self) -> pg8000.dbapi.Connection:
-            conn: pg8000.dbapi.Connection = connector.connect(
-                config.Gpostgres["hostname"],
-                "pg8000",
-                user=config.Gpostgres["user"],
-                password=config.Gpostgres["password"],
-                db=config.Gpostgres["database"],
-            )
-            return conn
-
-        engine = sqlalchemy.create_engine(
-            "postgresql+pg8000://",
-            creator=getconn,
-        )
-        engine.dialect.description_encoding = None
+    
+    def easyconnect(self): 
+        
+        if os.environ.get('RUN_LOCALLY'):
+            _dbURL = config.localGpostgresURL
+        else:
+           _dbURL = config.appengineGpostgresURL
+        engine = sqlalchemy.create_engine(_dbURL)
         return engine
 
-
     def getAllRecipes(self ):
-        engine = self.init_connection_engine()
+        engine = self.easyconnect()
         metadata = sqlalchemy.MetaData()
         census = sqlalchemy.Table('chefs', metadata, autoload=True, autoload_with=engine)
-        print(census.columns.keys())
-        
+        print(census.columns.keys())      
         recipes = pd.read_csv('./static/data/recipes.csv')
         result = recipes.to_json(orient="records")
         return result
@@ -62,7 +50,6 @@ class dataInterface:
     def getRecipebyId(self, inputId):
         recipes = pd.read_csv('./static/data/recipes.csv')
         result = recipes[recipes['recipeId'].astype(str) == inputId]
-
         result = result.to_json(orient="records")
         return result
     
