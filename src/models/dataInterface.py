@@ -4,28 +4,30 @@ import pathlib
 import os
 import sqlalchemy
 import pg8000
+from sqlalchemy.sql.elements import Null
 import config
 from google.cloud.sql.connector import connector
-
+import time 
 from flask import send_file
 
 
 
 class recipe:
-    def __init__(self, chefId, recipeId, recipeName, description, ingredients, tools):
-        self.chefId = chefId
-        self.recipeId = recipeId
-        self.recipeName = recipeName
+    def __init__(self, chefId, chefName, recipeId, recipeName, description, ingredients, tools):
+        self.chefid = chefId
+        self.chefname = chefName
+        self.recipeid = recipeId
+        self.recipename = recipeName
         self.description = description
         self.ingredients = ingredients
         self.tools = tools
     
 class chef:
     def __init__(self, gId, chefId, chefName, chefDescription):
-        self.gId = gId
-        self.chefId = chefId
-        self.chefName = chefName
-        self.chefDescription = chefDescription
+        self.gid = gId
+        self.chefid = chefId
+        self.chefname = chefName
+        self.chefdescription = chefDescription
 
 class dataInterface:
     
@@ -40,105 +42,102 @@ class dataInterface:
 
     def getAllRecipes(self ):
         engine = self.easyconnect()
-        metadata = sqlalchemy.MetaData()
-        census = sqlalchemy.Table('chefs', metadata, autoload=True, autoload_with=engine)
-        print(census.columns.keys())      
-        recipes = pd.read_csv('./static/data/recipes.csv')
-        result = recipes.to_json(orient="records")
+        with engine.connect() as con:
+            res = con.execute("select * from recipes").all()     
+        recipes = [r._asdict() for r in res]
+        result = json.dumps(recipes)
+        print(result)
         return result
 
     def getRecipebyId(self, inputId):
-        recipes = pd.read_csv('./static/data/recipes.csv')
-        result = recipes[recipes['recipeId'].astype(str) == inputId]
-        result = result.to_json(orient="records")
+        engine = self.easyconnect()
+        with engine.connect() as con:
+            res = con.execute("select * from recipes where recipeid = %s;", inputId).all()    
+        print(res) 
+        recipes = [r._asdict() for r in res]
+        result = json.dumps(recipes)
         return result
     
     def getChefbyId(self, inputId):
-        chefs = pd.read_csv('./static/data/chefs.csv',dtype=object)
         if inputId == '0':
             result = json.dumps([vars(chef("0",0,'', ''))])           
         else:
-            chefs['chefId'] = chefs['chefId'].astype(int)
-            result = chefs[chefs['chefId'].astype(str) == inputId]
-            result = result.to_json(orient="records")
+            engine = self.easyconnect()
+            with engine.connect() as con:
+                res = con.execute("select * from chefs where chefid = %s;", inputId).all()    
+            print(res) 
+            recipes = [r._asdict() for r in res]
+            result = json.dumps(recipes)
         return result
     
     def getChefbygId(self, gId):
-        chefs = pd.read_csv('./static/data/chefs.csv',dtype=object)
-        if len(chefs[chefs['gId'].astype(str) == str(gId)]) == 0:
-            result = json.dumps([vars(chef("0",0,'', ''))])           
+        engine = self.easyconnect()
+        with engine.connect() as con:
+            res = con.execute("select * from chefs where gid = %s;", gId).all()    
+        print(res) 
+        chefoutput = [r._asdict() for r in res]
+        if len(chefoutput) == 0:
+            result = json.dumps([vars(chef("0",0,'', ''))])  
         else:
-            chefs['gId'] = chefs['gId'].astype(str)
-            chefs['chefId'] = chefs['chefId'].astype(int)
-            result = chefs[chefs['gId'] == str(gId)]
-
-            result = result.to_json(orient="records")
+            result = json.dumps(chefoutput)
+ 
         return result
 
     def insertRecipe(self, recipe):       
-        recipes = pd.read_csv('./static/data/recipes.csv')
-        data = vars(recipe)
-        _chef = json.loads(self.getChefbyId(data['chefId']))
-        print(_chef)
-        data['chefName'] = _chef[0]['chefName']
-        data['recipeId'] = self.getMaxRecipeId()+1
-        df = recipes.append(data, ignore_index=True)
-        df.to_csv('./static/data/recipes.csv', index = False)               
+        engine = self.easyconnect()
+        recipe.recipeid = self.getMaxRecipeId()+1
+        if recipe.chefname == "":
+            _chef = json.loads(self.getChefbyId(recipe.chefid))
+            recipe.chefname = _chef[0]['chefname']
+        with engine.connect() as con:
+            con.execute("INSERT INTO recipes VALUES ( %(recipeid)s,%(recipename)s,%(chefname)s,%(chefid)s,%(ingredients)s,%(tools)s,%(description)s  );", recipe.__dict__)       
         return '1'
 
     def updateRecipe(self, recipe):       
-        recipes = pd.read_csv('./static/data/recipes.csv')
-        recipes['recipeId'] =  recipes['recipeId'].astype(str)
-        data = vars(recipe)
-        _chef = json.loads(self.getChefbyId(data['chefId']))
-        data['chefName'] = _chef[0]['chefName']
-        recipeId = data['recipeId']
-        for column in recipes:
-            if data[column] != '':
-                recipes.loc[recipes['recipeId'] == recipeId, column] = data[column]
-        recipes.to_csv('./static/data/recipes.csv', index = False)              
+        engine = self.easyconnect()
+        with engine.connect() as con:
+            con.execute("DELETE FROM recipes WHERE recipeid = %s;",recipe.recipeid)
+            con.execute("INSERT INTO recipes VALUES ( %(recipeid)s,%(recipename)s,%(chefname)s,%(chefid)s,%(ingredients)s,%(tools)s,%(description)s  );", recipe.__dict__)       
         return '1'
     
     def insertChef(self, chef):       
-        chefs = pd.read_csv('./static/data/chefs.csv')
-        data = vars(chef)
-        print(data)
-        data['chefId'] = self.getMaxChefId()+1
-        df = chefs.append(data, ignore_index=True)
-        df.to_csv('./static/data/chefs.csv', index = False)               
+        engine = self.easyconnect()
+        chef.chefid = self.getMaxChefId()+1
+        with engine.connect() as con:
+            con.execute("INSERT INTO chefs VALUES ( %(gid)s,%(chefid)s,%(chefname)s,%(chefdescription)s);", chef.__dict__)       
         return '1'
 
     def updateChef(self, chef):       
-        chefs = pd.read_csv('./static/data/chefs.csv')
-        chefs['chefId'] =  chefs['chefId'].astype(str)
-        data = vars(chef)    
-        chefId = data['chefId']
-        for column in chefs:
-            if data[column] != '':
-                chefs.loc[chefs['chefId'] == chefId, column] = data[column]
-        chefs.to_csv('./static/data/chefs.csv', index = False)              
+        engine = self.easyconnect()
+        print(chef.__dict__)
+        with engine.connect() as con:
+            con.execute("DELETE FROM chefs WHERE chefid = %s;",chef.chefid)
+            con.execute("INSERT INTO chefs VALUES ( %(gid)s,%(chefid)s,%(chefname)s,%(chefdescription)s);", chef.__dict__)       
         return '1'
 
+
     def getMaxRecipeId(self):       
-        recipes = pd.read_csv('./static/data/recipes.csv')
-        result = max(recipes['recipeId'])
+        engine = self.easyconnect()
+        with engine.connect() as con:
+            res = con.execute("select max(recipeid) from recipes;").scalar()    
+        result = int(res)
         return result
 
     def getMaxChefId(self):       
-        chefs = pd.read_csv('./static/data/chefs.csv')
-        result = max(chefs['chefId'])
+        engine = self.easyconnect()
+        with engine.connect() as con:
+            res = con.execute("select max(chefid) from chefs;").scalar()    
+        result = int(res)
         return result
 
-    def deleteRecipe(self, recipeId):       
-        recipes = pd.read_csv('./static/data/recipes.csv')
-        df = recipes[recipes.recipeId != int(recipeId)]
-        
-        df.to_csv('./static/data/recipes.csv', index = False)               
+    def deleteRecipe(self, recipeid):       
+        engine = self.easyconnect()
+        with engine.connect() as con:
+            con.execute("DELETE FROM recipes WHERE recipeid = %s;", recipeid)            
         return '1'
 
-    def deleteChef(self, chefId):       
-        chefs = pd.read_csv('./static/data/chefs.csv')
-        df = chefs[chefs.chefId != int(chefId)]
-        
-        df.to_csv('./static/data/chefs.csv', index = False)               
+    def deleteChef(self, chefid):       
+        engine = self.easyconnect()
+        with engine.connect() as con:
+            con.execute("DELETE FROM chefs WHERE chefid = %s;",chefid)           
         return '1'

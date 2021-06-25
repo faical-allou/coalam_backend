@@ -38,7 +38,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 @app.route('/')
 def hello():
-    eng = dataInterface.easyconnect()
+    check = dataInterface.getMaxRecipeId()
+    print(check)
     return 'Hello there'
 
 def authorize(key):
@@ -52,9 +53,7 @@ def authorize(key):
 def getAllrecipes():
     #authorize(request.headers['Authorization'])
     listRecipes = dataInterface.getAllRecipes()
-    print(listRecipes)
     return listRecipes
-
 
 @app.route('/v1/recipe/<id>')
 def getRecipeId(id):
@@ -148,9 +147,8 @@ def deleteEvent(eventId):
 def editRecipe():
     #authorize(request.headers['Authorization'])
     data = dict(request.form)
-    dataDF = recipe(data['chefId'],data['recipeId'],data['recipeName'],data['recipeDescription'],data['ingredients'],data['tools'])
-    if data['recipeId']=='0':
-        data['recipeId'] = str(dataInterface.getMaxRecipeId() +1)
+    dataDF = recipe(data['chefid'],data['chefname'],data['recipeid'],data['recipename'],data['recipedescription'],data['ingredients'],data['tools'])
+    if data['recipeid']=='0':
         dataInterface.insertRecipe(dataDF)
     else:
         dataInterface.updateRecipe(dataDF)
@@ -160,19 +158,17 @@ def editRecipe():
         
     if len(request.files) > 0:
         bytefile = request.files['image1']
-        imageInterface.addimage(bytefile,'image/recipe-'+data['recipeId']+'/1.jpg' )
-        print('saved as ' + 'image/recipe-'+data['recipeId']+'/1.jpg')
-
-    return json.dumps({'recipeId':data['recipeId'], 'chefId':data['chefId'], 'status':'success'})
+        imageInterface.addimage(bytefile,'image/recipe-'+data['recipeid']+'/1.jpg' )
+        print('saved as ' + 'image/recipe-'+data['recipeid']+'/1.jpg')
+    return json.dumps({'recipeid':data['recipeid'], 'chefid':data['chefid'], 'status':'success'})
 
 
 @app.route('/v1/edit_account/', methods=['POST'])
 def editAccount():
     #authorize(request.headers['Authorization'])
     data = dict(request.form)
-    dataDF = chef(data['gId'],data['chefId'],data['chefName'],data['chefDescription'])
-    if data['chefId']=='0':
-        data['chefId'] = dataInterface.getMaxChefId() +1
+    dataDF = chef(data['gid'],data['chefid'],data['chefname'],data['chefdescription'])
+    if data['chefid']=='0':
         dataInterface.insertChef(dataDF)
         print('inserted')
     else:
@@ -182,8 +178,8 @@ def editAccount():
     print('request.files length is: ' + str(len(request.files)) )        
     if len(request.files) > 0:
         bytefile = request.files['image1']
-        imageInterface.addimage(bytefile,'image/chef-'+data['chefId']+'/1.jpg' )
-    return json.dumps({'chefId':data['chefId'], 'status':'success'})
+        imageInterface.addimage(bytefile,'image/chef-'+data['chefid']+'/1.jpg' )
+    return json.dumps({'chefid':data['chefid'], 'status':'success'})
 
 @app.route('/v1/delete_recipe/<id>')
 def doDeleteRecipe(id):
