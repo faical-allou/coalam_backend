@@ -3,3 +3,11 @@ env: flex
 
 beta_settings:
   cloud_sql_instances: coalam-e2dce:europe-west1:coalam-postgres=tcp:3000
+
+manual_scaling:
+  instances: 1
+
+resources:
+  cpu: .5
+  memory_gb: 0.9
+  disk_size_gb: 10

@@ -91,7 +91,7 @@ class dataInterface:
             recipe.chefname = _chef[0]['chefname']
         with engine.connect() as con:
             con.execute("INSERT INTO recipes VALUES ( %(recipeid)s,%(recipename)s,%(chefname)s,%(chefid)s,%(ingredients)s,%(tools)s,%(description)s  );", recipe.__dict__)       
-        return '1'
+        return recipe.recipeid
 
     def updateRecipe(self, recipe):       
         engine = self.easyconnect()
@@ -105,7 +105,7 @@ class dataInterface:
         chef.chefid = self.getMaxChefId()+1
         with engine.connect() as con:
             con.execute("INSERT INTO chefs VALUES ( %(gid)s,%(chefid)s,%(chefname)s,%(chefdescription)s);", chef.__dict__)       
-        return '1'
+        return  chef.chefid
 
     def updateChef(self, chef):       
         engine = self.easyconnect()

@@ -149,7 +149,7 @@ def editRecipe():
     data = dict(request.form)
     dataDF = recipe(data['chefid'],data['chefname'],data['recipeid'],data['recipename'],data['recipedescription'],data['ingredients'],data['tools'])
     if data['recipeid']=='0':
-        dataInterface.insertRecipe(dataDF)
+        data['recipeid'] = dataInterface.insertRecipe(dataDF)
     else:
         dataInterface.updateRecipe(dataDF)
         print('inserting')
@@ -158,8 +158,8 @@ def editRecipe():
         
     if len(request.files) > 0:
         bytefile = request.files['image1']
-        imageInterface.addimage(bytefile,'image/recipe-'+data['recipeid']+'/1.jpg' )
-        print('saved as ' + 'image/recipe-'+data['recipeid']+'/1.jpg')
+        imageInterface.addimage(bytefile,'image/recipe-'+str(data['recipeid'])+'/1.jpg' )
+        print('saved as ' + 'image/recipe-'+str(data['recipeid'])+'/1.jpg')
     return json.dumps({'recipeid':data['recipeid'], 'chefid':data['chefid'], 'status':'success'})
 
 
@@ -169,7 +169,7 @@ def editAccount():
     data = dict(request.form)
     dataDF = chef(data['gid'],data['chefid'],data['chefname'],data['chefdescription'])
     if data['chefid']=='0':
-        dataInterface.insertChef(dataDF)
+        data['chefid'] = dataInterface.insertChef(dataDF)
         print('inserted')
     else:
         dataInterface.updateChef(dataDF)
@@ -178,7 +178,7 @@ def editAccount():
     print('request.files length is: ' + str(len(request.files)) )        
     if len(request.files) > 0:
         bytefile = request.files['image1']
-        imageInterface.addimage(bytefile,'image/chef-'+data['chefid']+'/1.jpg' )
+        imageInterface.addimage(bytefile,'image/chef-'+str(data['chefid'])+'/1.jpg' )
     return json.dumps({'chefid':data['chefid'], 'status':'success'})
 
 @app.route('/v1/delete_recipe/<id>')
