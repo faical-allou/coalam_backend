@@ -52,7 +52,7 @@ service = build('calendar', 'v3', credentials=creds)
 class eventInterface:
     def AaddEvent(self, chefId,recipeId):
         print("start function")
-        query = '-' + chefId + '-' + recipeId + '-'
+        query = '_' + chefId + '_' + recipeId + '_'
         data = dict(request.form)
         event = {"summary": query,
                 "description": data['eventDescription'] ,
@@ -84,10 +84,11 @@ class eventInterface:
         return 'event deleted'
     
     def getSchedule(self, chefId,recipeId):
-        query = '-' + chefId + '-' + recipeId + "-" 
+        query = '_' + chefId + '_' + recipeId + '_' 
         calendarId = config.calendarIdpct
         key = config.Gkey
         url = 'https://www.googleapis.com/calendar/v3/calendars/'+calendarId+'/events?q='+query+'&key='+key
+        print(url)
         x = requests.get(url)
         jsonX = x.json()
         return jsonX

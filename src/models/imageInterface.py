@@ -39,7 +39,6 @@ class imageInterface:
         print(str(i_) + ' file(s)/folder(s) deleted')
 
     def count_blobs(self,bucket_name, prefixpath):
-        print('deleting many')
         storage_client = storage.Client()
         bucket = storage_client.get_bucket(bucket_name)
         blobs = bucket.list_blobs(prefix=prefixpath)
