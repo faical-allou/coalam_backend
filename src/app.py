@@ -20,6 +20,7 @@ from google.oauth2.credentials import Credentials
 
 from models.dataInterface import *
 from models.imageInterface import *
+from models.eventInterface import *
 
 import config
 from google.cloud import storage
@@ -31,6 +32,7 @@ CORS(app)
 
 dataInterface = dataInterface()
 imageInterface = imageInterface()
+eventInterface = eventInterface()
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -51,101 +53,59 @@ def authorize(key):
         
 @app.route('/v1/all')
 def getAllrecipes():
-    #authorize(request.headers['Authorization'])
     listRecipes = dataInterface.getAllRecipes()
     return listRecipes
 
 @app.route('/v1/recipe/<id>')
 def getRecipeId(id):
-    #authorize(request.headers['Authorization'])
     recipe = dataInterface.getRecipebyId(id)
     return recipe
 
 @app.route('/v1/chef/<id>')
 def getChefId(id):
-    #authorize(request.headers['Authorization'])
     chef = dataInterface.getChefbyId(id)
     print(chef)
     return chef
 
 @app.route('/v1/gchef/<id>')
 def getgChefId(id):
-    print('in gsearch')
-    print(id)
-    #authorize(request.headers['Authorization'])
     chef = dataInterface.getChefbygId(id)
     print(chef)
     return chef
 
 @app.route('/v1/get_image/<recipeId>/count')
 def getRecipeImageCount(recipeId):
-    #authorize(request.headers['Authorization'])
     count = imageInterface.getCountImages('image/recipe-'+recipeId)
     return json.dumps({'data':count})
 
 
 @app.route('/v1/get_image/<recipeId>/<id>')
 def getRecipeImage(recipeId,id):
-    # authorize(request.headers['Authorization'])
     return imageInterface.getRecipeImage(recipeId,id)
 
 
 @app.route('/v1/get_image/<id>')
 def getChefImage(id):
-    # authorize(request.headers['Authorization'])
     return imageInterface.getChefImage(id)
 
 
 @app.route('/v1/get_schedule/<chefId>/<recipeId>')
 def getSchedule(chefId,recipeId):
-    #authorize(request.headers['Authorization'])
-    query = chefId + '-' + recipeId 
-    calendarId = config.calendarIdpct
-    key = config.Gkey
-    url = 'https://www.googleapis.com/calendar/v3/calendars/'+calendarId+'/events?q='+query+'&key='+key
-    x = requests.get(url)
-    jsonX = x.json()
-    return jsonX
+    json_out = eventInterface.getSchedule(chefId,recipeId)
+    return json_out
 
 @app.route('/v1/add_event/<chefId>/<recipeId>', methods=['POST'])
-def addEvent(chefId,recipeId):
-    #authorize(request.headers['Authorization'])
-    query =  chefId + '-' + recipeId
-    data = dict(request.form)
-    event = {"summary": chefId + '-' + recipeId,
-             "description": data['eventDescription'] ,
-              "start": {
-                "dateTime": data['eventStart'],
-                "timeZone": "UTC"
-              },
-              "end": {
-                "dateTime": data['eventEnd'],
-                "timeZone": "UTC"
-              },
-              "conferenceDataVersion": 1,
-              "conferenceData": {
-                  "createRequest": {
-                        "conferenceSolutionKey": { 
-                                    "type": "hangoutsMeet", 
-                                    },
-                        "requestId": str(datetime.datetime.now()),
-                        },
-                  }
-              }
-
-    event = service.events().insert(calendarId=config.calendarIdat, body=event,  conferenceDataVersion=1).execute()
-    print ('Event created: ' +  str(event))
+def doAaddEvent(chefId,recipeId):
+    eventInterface.AaddEvent(chefId, recipeId)
     return 'event added'
 
 @app.route('/v1/delete_event/<eventId>', )
-def deleteEvent(eventId):
-    #authorize(request.headers['Authorization'])   
-    event = service.events().delete(calendarId=config.calendarIdat, eventId=eventId).execute()
+def doDeleteEvent(eventId):
+    eventInterface.deleteEvent(eventId)
     return 'event deleted'
 
 @app.route('/v1/edit_recipe/', methods=['POST'])
 def editRecipe():
-    #authorize(request.headers['Authorization'])
     data = dict(request.form)
     dataDF = recipe(data['chefid'],data['chefname'],data['recipeid'],data['recipename'],data['recipedescription'],data['ingredients'],data['tools'])
     if data['recipeid']=='0':
@@ -165,7 +125,6 @@ def editRecipe():
 
 @app.route('/v1/edit_account/', methods=['POST'])
 def editAccount():
-    #authorize(request.headers['Authorization'])
     data = dict(request.form)
     dataDF = chef(data['gid'],data['chefid'],data['chefname'],data['chefdescription'])
     if data['chefid']=='0':
@@ -175,7 +134,7 @@ def editAccount():
         dataInterface.updateChef(dataDF)
         print('updated')
 
-    print('request.files length is: ' + str(len(request.files)) )        
+    print('request.files length is: ' + str(len(request.files)))        
     if len(request.files) > 0:
         bytefile = request.files['image1']
         imageInterface.addimage(bytefile,'image/chef-'+str(data['chefid'])+'/1.jpg' )
@@ -183,21 +142,39 @@ def editAccount():
 
 @app.route('/v1/delete_recipe/<id>')
 def doDeleteRecipe(id):
-    #authorize(request.headers['Authorization'])
-    dataInterface.deleteRecipe(id)
+    input_recipe = json.loads(dataInterface.getRecipebyId(id))
+    list2 = eventInterface.getSchedule(str(input_recipe[0]["chefid"]),str(id))
+    for e in list2['items']:
+        print(e['id'])
+        try:
+            eventInterface.deleteEvent(e['id'])
+        except Exception as e:
+            print('problem when deleting Events')
     try:
         imageInterface.deleteFiles('image/recipe-'+id)
     except Exception as e:
         print('problem when deleting Recipe')
         print( e )
+    dataInterface.deleteRecipe(id) 
     return 'deleted'
  
 @app.route('/v1/delete_chef/<id>')
 def doDeleteChef(id):
-    #authorize(request.headers['Authorization'])
     dataInterface.deleteChef(id)
+    list = json.loads(dataInterface.getRecipebyChefId(id))
+    for rec in list:    
+        recipeid = rec['recipeid']         
+        dataInterface.deleteRecipe(recipeid)  
+        imageInterface.deleteFiles('image/recipe-'+str(recipeid))
+        list2 = eventInterface.getSchedule(str(id),str(recipeid))
+        for e in list2['items']:
+            print(e['id'])
+            try:
+                eventInterface.deleteEvent(e['id'])
+            except Exception as e:
+                print('problem when deleting Events')
     try:
-        imageInterface.deleteFiles('image/chef-'+id)
+        imageInterface.deleteFiles('image/chef-'+str(id))
     except Exception as e:
         print('problem when deleting Chef')
         print( e )

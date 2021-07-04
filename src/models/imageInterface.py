@@ -65,7 +65,6 @@ class imageInterface:
             tempfilename = 'chef-'+id+'.jpg'
             self.download_blob(config.Gcloudbucket,location,"./static/temp/"+tempfilename)
             return send_file("../static/temp/"+tempfilename, mimetype='image/jpg')
-
         except:
             filename = '../static/image/empty-profile.png'
             return send_file(filename, mimetype='image/gif')  

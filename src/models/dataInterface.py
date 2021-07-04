@@ -9,8 +9,9 @@ import config
 from google.cloud.sql.connector import connector
 import time 
 from flask import send_file
+from models.imageInterface import *
 
-
+imageInterface = imageInterface()
 
 class recipe:
     def __init__(self, chefId, chefName, recipeId, recipeName, description, ingredients, tools):
@@ -31,8 +32,9 @@ class chef:
 
 class dataInterface:
     
-    def easyconnect(self): 
-        
+    
+
+    def easyconnect(self):         
         if os.environ.get('RUN_LOCALLY'):
             _dbURL = config.localGpostgresURL
         else:
@@ -58,6 +60,15 @@ class dataInterface:
         result = json.dumps(recipes)
         return result
     
+    def getRecipebyChefId(self, inputId):
+        engine = self.easyconnect()
+        with engine.connect() as con:
+            res = con.execute("select * from recipes where chefid = %s;", inputId).all()    
+        print(res) 
+        recipes = [r._asdict() for r in res]
+        result = json.dumps(recipes)
+        return result
+
     def getChefbyId(self, inputId):
         if inputId == '0':
             result = json.dumps([vars(chef("0",0,'', ''))])           
@@ -133,11 +144,11 @@ class dataInterface:
     def deleteRecipe(self, recipeid):       
         engine = self.easyconnect()
         with engine.connect() as con:
-            con.execute("DELETE FROM recipes WHERE recipeid = %s;", recipeid)            
+            con.execute("DELETE FROM recipes WHERE recipeid = %s;", recipeid)
         return '1'
 
     def deleteChef(self, chefid):       
         engine = self.easyconnect()
         with engine.connect() as con:
-            con.execute("DELETE FROM chefs WHERE chefid = %s;",chefid)           
-        return '1'
+            con.execute("DELETE FROM chefs WHERE chefid = %s;",chefid)        
+        return 'done'
