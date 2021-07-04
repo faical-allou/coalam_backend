@@ -41,15 +41,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 @app.route('/')
 def hello():
     check = dataInterface.getMaxRecipeId()
-    print(check)
     return 'Hello there'
-
-def authorize(key):
-    if key == config.appkey:
-        print('authorized')
-    else:
-        print('not authorized')
-        abort(404) 
         
 @app.route('/v1/all')
 def getAllrecipes():
@@ -64,13 +56,11 @@ def getRecipeId(id):
 @app.route('/v1/chef/<id>')
 def getChefId(id):
     chef = dataInterface.getChefbyId(id)
-    print(chef)
     return chef
 
 @app.route('/v1/gchef/<id>')
 def getgChefId(id):
     chef = dataInterface.getChefbygId(id)
-    print(chef)
     return chef
 
 @app.route('/v1/get_image/<recipeId>/count')
@@ -112,14 +102,10 @@ def editRecipe():
         data['recipeid'] = dataInterface.insertRecipe(dataDF)
     else:
         dataInterface.updateRecipe(dataDF)
-        print('inserting')
     
-    print('request.files length is: ' + str(len(request.files)) )
-        
     if len(request.files) > 0:
         bytefile = request.files['image1']
         imageInterface.addimage(bytefile,'image/recipe-'+str(data['recipeid'])+'/1.jpg' )
-        print('saved as ' + 'image/recipe-'+str(data['recipeid'])+'/1.jpg')
     return json.dumps({'recipeid':data['recipeid'], 'chefid':data['chefid'], 'status':'success'})
 
 
@@ -127,17 +113,16 @@ def editRecipe():
 def editAccount():
     data = dict(request.form)
     dataDF = chef(data['gid'],data['chefid'],data['chefname'],data['chefdescription'])
+    
     if data['chefid']=='0':
         data['chefid'] = dataInterface.insertChef(dataDF)
-        print('inserted')
     else:
         dataInterface.updateChef(dataDF)
-        print('updated')
 
-    print('request.files length is: ' + str(len(request.files)))        
     if len(request.files) > 0:
         bytefile = request.files['image1']
         imageInterface.addimage(bytefile,'image/chef-'+str(data['chefid'])+'/1.jpg' )
+    print(data)
     return json.dumps({'chefid':data['chefid'], 'status':'success'})
 
 @app.route('/v1/delete_recipe/<id>')
@@ -145,7 +130,6 @@ def doDeleteRecipe(id):
     input_recipe = json.loads(dataInterface.getRecipebyId(id))
     list2 = eventInterface.getSchedule(str(input_recipe[0]["chefid"]),str(id))
     for e in list2['items']:
-        print(e['id'])
         try:
             eventInterface.deleteEvent(e['id'])
         except Exception as e:
@@ -168,7 +152,6 @@ def doDeleteChef(id):
         imageInterface.deleteFiles('image/recipe-'+str(recipeid))
         list2 = eventInterface.getSchedule(str(id),str(recipeid))
         for e in list2['items']:
-            print(e['id'])
             try:
                 eventInterface.deleteEvent(e['id'])
             except Exception as e:
@@ -183,32 +166,10 @@ def doDeleteChef(id):
 
 
 if __name__ == '__main__':
-    # Doing the google authentification
-    SCOPES = ['https://www.googleapis.com/auth/calendar']
-    creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=5000)
-        # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-
-    service = build('calendar', 'v3', credentials=creds)
-
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
-    if os.environ.get('ON_HEROKU'):
+    if os.environ.get('PORT') != 8080:
         port = int(os.environ.get('PORT', 8080))
-        app.run(host='0.0.0.0', port=port)
+        app.run(host='0.0.0.0', port=port, debug=True)
     else :
         app.run(host='0.0.0.0', port=8080, debug=True)
 

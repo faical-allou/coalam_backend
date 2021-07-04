@@ -48,14 +48,12 @@ class dataInterface:
             res = con.execute("select * from recipes").all()     
         recipes = [r._asdict() for r in res]
         result = json.dumps(recipes)
-        print(result)
         return result
 
     def getRecipebyId(self, inputId):
         engine = self.easyconnect()
         with engine.connect() as con:
             res = con.execute("select * from recipes where recipeid = %s;", inputId).all()    
-        print(res) 
         recipes = [r._asdict() for r in res]
         result = json.dumps(recipes)
         return result
@@ -76,7 +74,6 @@ class dataInterface:
             engine = self.easyconnect()
             with engine.connect() as con:
                 res = con.execute("select * from chefs where chefid = %s;", inputId).all()    
-            print(res) 
             recipes = [r._asdict() for r in res]
             result = json.dumps(recipes)
         return result
@@ -85,7 +82,6 @@ class dataInterface:
         engine = self.easyconnect()
         with engine.connect() as con:
             res = con.execute("select * from chefs where gid = %s;", gId).all()    
-        print(res) 
         chefoutput = [r._asdict() for r in res]
         if len(chefoutput) == 0:
             result = json.dumps([vars(chef("0",0,'', ''))])  
@@ -120,7 +116,6 @@ class dataInterface:
 
     def updateChef(self, chef):       
         engine = self.easyconnect()
-        print(chef.__dict__)
         with engine.connect() as con:
             con.execute("DELETE FROM chefs WHERE chefid = %s;",chef.chefid)
             con.execute("INSERT INTO chefs VALUES ( %(gid)s,%(chefid)s,%(chefname)s,%(chefdescription)s);", chef.__dict__)       

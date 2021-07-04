@@ -9,6 +9,6 @@ automatic_scaling:
   max_num_instances: 1
 
 resources:
-  cpu: .2
-  memory_gb: 0.5
+  cpu: 1
+  memory_gb: 1
   disk_size_gb: 10
